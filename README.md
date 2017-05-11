@@ -53,7 +53,7 @@ for {
 ```
 
 The values for the coins to watch are the CoinMarketCap id's, which can be seen in the url when viewing details on the site.
-An example for Bitcoin; 'coinmarketcap.com/currencies/*bitcoin*/'
+An example for Bitcoin; 'coinmarketcap.com/currencies/__bitcoin__/'
 
 ## Authors
 
