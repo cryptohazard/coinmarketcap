@@ -20,7 +20,7 @@ func main() {
 	t = append(t, "steem-dollars")
 
 	// Endpoints are updated every 5 minutes, se we use that here
-	period := 10 // 60 * 5
+	period := 60 * 5
 	ticker := time.NewTicker(time.Second * time.Duration(period))
 
 	// Because we are impatient, call it now
