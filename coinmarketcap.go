@@ -6,54 +6,44 @@ import (
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/shaunmza/coinmarketcap/data"
 )
+
+// The Ticker struct holds a map of Coin structs, the last time
+// data was fetched successfully and in the case of an error, the error message
+type Ticker struct {
+	Coins      []*Coin
+	LastUpdate time.Time
+	Error      error
+}
+
+// The Coin struct holds the data pertaining to a specific coin
+type Coin struct {
+	ID               string `json:"id"`
+	Name             string `json:"name"`
+	Symbol           string `json:"symbol"`
+	Rank             int16  `json:"rank,string"`
+	PriceUsd         string `json:"price_usd"`
+	PriceBtc         string `json:"price_btc"`
+	Usd24hVolume     string `json:"24h_volume_usd"`
+	MarketCapUsd     string `json:"market_cap_usd"`
+	AvailableSupply  string `json:"available_supply"`
+	TotalSupply      string `json:"total_supply"`
+	PercentChange1h  string `json:"percent_change_1h"`
+	PercentChange24h string `json:"percent_change_24h, string"`
+	PercentChange7d  string `json:"percent_change_7d, string"`
+	LastUpdated      string `json:"last_updated"`
+}
 
 // As per API documentation found at `https://coinmarketcap.com/api/`
 const tickerURL = "https://api.coinmarketcap.com/v1/ticker/"
 
-// Channel into which fetched data is sent
-var coinCh chan data.Ticker
-
-// Init is called so we can return the channel.
-// This allows messages to be read off of it,
-// and we can close it from outside too
-func Init() chan data.Ticker {
-	coinCh = make(chan data.Ticker)
-
-	return coinCh
-}
-
-// WatchCoins runs a ticker to fetch the data periodically
-func WatchCoins(coins []string, period int) {
-	// Don't call too often
-	if period < 10 {
-		period = 10
-	}
-
-	// Call now so we don't have to wait for the first batch of data
-	go func() {
-		s := getData(coins)
-		coinCh <- s
-	}()
-
-	ticker := time.NewTicker(time.Second * time.Duration(period))
-	go func() {
-		for _ = range ticker.C {
-			s := getData(coins)
-			coinCh <- s
-		}
-	}()
-}
-
-// getData makes the actuall http request, parses the JSON and returns
+// GetData makes the actual http request, parses the JSON and returns
 // the data in a struct
-func getData(coins []string) data.Ticker {
+func GetData(coins []string) (Ticker, error) {
 
 	resp, err := http.Get(tickerURL)
 	if err != nil {
-		return data.Ticker{Error: err}
+		return Ticker{}, err
 	}
 
 	defer resp.Body.Close()
@@ -62,14 +52,14 @@ func getData(coins []string) data.Ticker {
 
 	if err != nil {
 		log.Fatal(err)
-		return data.Ticker{Error: err}
+		return Ticker{}, err
 	}
 
-	var j []*data.Coin
-	var res []*data.Coin
+	var j []*Coin
+	var res []*Coin
 	if err := json.Unmarshal(ret, &j); err != nil {
 		log.Fatal(err)
-		return data.Ticker{Error: err}
+		return Ticker{}, err
 	}
 
 	for _, c1 := range j {
@@ -81,6 +71,6 @@ func getData(coins []string) data.Ticker {
 
 	}
 
-	r := data.Ticker{Coins: res, LastUpdate: time.Now()}
-	return r
+	r := Ticker{Coins: res, LastUpdate: time.Now()}
+	return r, err
 }

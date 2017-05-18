@@ -2,17 +2,15 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/shaunmza/coinmarketcap"
-	"github.com/shaunmza/coinmarketcap/data"
 )
 
 func main() {
 
-	var r data.Ticker
-
-	// Initialse, so we can get the channel to receive updates from
-	tChan := coinmarketcap.Init()
+	var r coinmarketcap.Ticker
+	var err error
 
 	// Which coins do you want to watch?
 	t := make([]string, 0)
@@ -21,28 +19,44 @@ func main() {
 	t = append(t, "steem")
 	t = append(t, "steem-dollars")
 
-	// Start watching, second parameter is period between updates
 	// Endpoints are updated every 5 minutes, se we use that here
-	coinmarketcap.WatchCoins(t, 60*5)
+	period := 10 // 60 * 5
+	ticker := time.NewTicker(time.Second * time.Duration(period))
+
+	// Because we are impatient, call it now
+	r, err = coinmarketcap.GetData(t)
+
+	// If this is not nil then we encountered a problem, use this to determine
+	// what to do next.
+	// LastUpdate can be used to determine how stale the data is
+	if err != nil {
+		fmt.Printf("Error! %s, Last Updated: %s\n", err, r.LastUpdate)
+	}
+
+	printData(r)
 
 	// Infinite loop so we keep getting prices
-	for {
+	for _ = range ticker.C {
 		// Get off of the channel
-		r = <-tChan
+		r, err = coinmarketcap.GetData(t)
 
 		// If this is not nil then we encountered a problem, use this to determine
 		// what to do next.
 		// LastUpdate can be used to determine how stale the data is
-		if r.Error != nil {
-			fmt.Printf("Error! %s, Last Updated: %s\n", r.Error, r.LastUpdate)
+		if err != nil {
+			fmt.Printf("Error! %s, Last Updated: %s\n", err, r.LastUpdate)
 		}
+		printData(r)
 
-		// Just print it out for now
-		for _, coin := range r.Coins {
-			fmt.Println("Symbol: '" + coin.Symbol + "', Name: '" +
-				coin.Name + "', Price Bitcoin: '" +
-				coin.PriceBtc + "', Price USD: '" + coin.PriceUsd + "'")
-		}
 	}
 
+}
+
+func printData(r coinmarketcap.Ticker) {
+	// Just print it out for now
+	for _, coin := range r.Coins {
+		fmt.Println("Symbol: '" + coin.Symbol + "', Name: '" +
+			coin.Name + "', Price Bitcoin: '" +
+			coin.PriceBtc + "', Price USD: '" + coin.PriceUsd + "'")
+	}
 }
