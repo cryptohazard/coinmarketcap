@@ -5,7 +5,7 @@ Simple API client library for the CoinMarketCap API, written in Go
 ## Installation
 
 This is not a standalone app, use it in your project as a package. To get it simply run;
-`go get github.com/shaunmza/coinmarketcap`
+`go get github.com/cryptohazard/coinmarketcap`
 
 ## Usage
 
