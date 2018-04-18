@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/shaunmza/coinmarketcap"
+	"github.com/cryptohazard/coinmarketcap"
 )
 
 func main() {
@@ -15,9 +15,9 @@ func main() {
 	// Which coins do you want to watch?
 	t := make([]string, 0)
 	t = append(t, "bitcoin")
-	t = append(t, "litecoin")
+	t = append(t, "ethereum")
 	t = append(t, "steem")
-	t = append(t, "steem-dollars")
+	t = append(t, "eos")
 
 	// Endpoints are updated every 5 minutes, se we use that here
 	period := 60 * 5
@@ -33,7 +33,7 @@ func main() {
 		fmt.Printf("Error! %s, Last Updated: %s\n", err, r.LastUpdate)
 	}
 
-	printData(r)
+	coinmarketcap.PrintData(r)
 
 	// Infinite loop so we keep getting prices
 	for _ = range ticker.C {
@@ -46,17 +46,8 @@ func main() {
 		if err != nil {
 			fmt.Printf("Error! %s, Last Updated: %s\n", err, r.LastUpdate)
 		}
-		printData(r)
+		coinmarketcap.PrintData(r)
 
 	}
 
-}
-
-func printData(r coinmarketcap.Ticker) {
-	// Just print it out for now
-	for _, coin := range r.Coins {
-		fmt.Println("Symbol: '" + coin.Symbol + "', Name: '" +
-			coin.Name + "', Price Bitcoin: '" +
-			coin.PriceBtc + "', Price USD: '" + coin.PriceUsd + "'")
-	}
 }
